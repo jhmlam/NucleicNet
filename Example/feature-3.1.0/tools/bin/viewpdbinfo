@@ -1,0 +1,28 @@
+#! /usr/bin/env perl
+
+# Read in command line pdbids
+@pdbids = @ARGV;
+# If none supplied, read from stdin 
+@pdbids = <> if ($#pdbids == -1);
+
+eusage() unless ($#pdbids >= 0);
+
+$pdbinfofile = "/project1/structure/mliang/pdb/rsync/pdb/derived_data/index/entries.idx";
+open(INFH,"< $pdbinfofile") || die "Could not open $pdbinfofile\n";
+
+%info = ();
+while ($line = <INFH>) {
+    ($pdbid,undef) = split(/\t/,$line,2);
+    $info{lc $pdbid} = $line;
+}
+
+for $pdbid (@pdbids) {
+    $pdbid = lc $pdbid;
+    $pdbid =~ s/\s+//g;
+    print $info{lc $pdbid};
+}
+
+sub eusage {
+    print "Usage: $0 PDBIDS...\n";
+    exit;
+}

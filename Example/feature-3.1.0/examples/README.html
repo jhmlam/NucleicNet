@@ -1,0 +1,477 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+<title>Running the Example</title>
+<link href="doxygen.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<a name="Running_Example"></a><h1>Learning to Use FEATURE</h1>
+
+<p>The best way to learn to use the FEATURE software is to try an example. This
+exercise is intended for Desktop Users to learn the basics of how to run the
+FEATURE command line tools and learn how to read and interpret the results from
+FEATURE. This section builds on concepts presented in the 
+<a href="index.html">Introduction</a> and the section on 
+<a href="installation.html">Installation</a>.</p>
+
+<h2>Conceptual Overview</h2>
+
+<p>This section describes briefly what FEATURE does and how to use the
+programs that FEATURE provides to search for functional domains in protein
+structures and model functional domains. Note that FEATURE is primarily used
+for proteins, but it can also find RNA domains.</p>
+
+<p>You can use FEATURE to:</p>
+<ol>
+	<li>Characterize microenvironments in biomolecular structures</li>
+	<li>Model biomolecular functional classes</li>
+	<li>Search for functionality within a biomolecular structure</li>
+</ol>
+
+<p>FEATURE describes structures at the atomic level by accumulating
+physicochemical properties in highly localized spherical volumes called
+microenvironments. FEATURE provides the <tt>featurize</tt> program to
+characterize microenvironments in protein structures in <a href="pdb.html">PDB
+files</a> and write out the descriptions as <a
+href="feature_vector.html">feature vector files</a>.</p>
+
+<p>A functional class can be modeled using structure descriptions of all
+domains in the given class. These structure descriptions form the positive
+training data. In contrast, a sample of structure descriptions of protein
+structures outside the given class form the negative training data. FEATURE
+provides the <tt>buildmodel</tt> program to train a machine learning algorithm
+on the positive and negative training data.</p>
+
+<p>If a protein contains a structure similar to one being modeled, then the
+protein may belong to the same functional class as the model. FEATURE provides
+the <tt>scoreit</tt> program that compares all points in a protein structure
+to a model, effectively searching for functional domains in the protein
+structure that match the model.</p>
+
+<h3>Software Overview</h3>
+
+<p>FEATURE provides three command line programs:</p>
+
+<table border=0 cellpadding=0 cellspacing=0>
+<tr>
+	<td valign="top"><tt>featurize</tt>&nbsp;</td><td>Characterizes microenvironments
+	within biomolecular structures</td>
+</tr><tr>
+	<td valign="top"><tt>buildmodel</tt>&nbsp;</td><td>Train a machine
+	learning classification model positive and negative training data<td>
+</tr><tr>
+	<td valign="top"><tt>scoreit</tt>&nbsp;</td><td>Evaluates the likelihood
+	that points within a biomolecule match a modeled functional class</td>
+</tr>
+</table>
+
+<p>&nbsp;</p>
+
+<h2>Calling FEATURE Programs from the Command Line</h2>
+
+<p>FEATURE command line programs and useful tools are configured to be
+directly accessible from the command line. For example, you can run the
+<tt>featurize</tt> program by typing the <tt>featurize</tt> command in a
+terminal window as follows:</p>
+
+<p><tt>$ featurize</tt></p>
+
+<p>If you need help with any of the programs, simply run the program from the
+command line, without any arguments.</p>
+
+<pre class="fragment">
+$ ./featurize
+Error: ERROR: No PDB IDs requested
+
+FEATURE 3.1.0 (build 1622) - featurize
+
+Usage: featurize [OPTIONS] [PDBID...]
+
+Must exclude .ent or other filename extension in PDBID
+
+Options:
+    -v  Increase verbosity
+    -n SHELLS [Default: 6]
+        Set number of shells to NUMSHELLS
+    -w SHELL_WIDTH [Default: 1.25]
+        Set thickness of each shell to SHELLWIDTH Angstroms
+    -x EXCLUDED_RESIDUES [Default: HETATM]
+        Set residues to exclude to comma separated list of
+        EXCLUDERESIDUES
+    -f PDBID_FILE
+        Read PDBIDs from PDBIDFILE
+    -P POINT_FILE
+        Read point list from POINTFILE
+    -l PROPERTIES_FILE
+        Read a property list from PROPERTIESFILE
+    -s SEARCH_PATH
+        Look for protein files in SEARCHPATH first before system directories
+</pre>
+
+<h3>How to Use FEATURE to Build a Model</h3>
+
+<p>This section presents:</p>
+
+<ul>
+	<li>An introduction on how training data points are selected</li>
+	<li>Instructions to characterize positive training data points</li>
+	<li>Instructions to characterize negative training data points</li>
+	<li>Instructions to build the model</li>
+</ul>
+
+<p>The most important step for building a protein functional model is the
+selection of the training data. One source of training data is joining the
+Prosite database (<a
+href="http://expasy.org/prosite">http://expasy.org/prosite</a>) and UNIPROT
+database (<a href="http://www.uniprot.org">http://www.uniprot.org</a>) and
+datamining the resultant join for groups of proteins with a similar function.
+The details for this method is beyond the scope of this document and the
+motivated user may review the references (<a
+href="http://feature.stanford.edu/publications.php">http://feature.stanford.edu/publications.php</a>) 
+for a complete description of this approach.</p> 
+
+<p>A functional mechanism is the chemical pathway that shows how a functional
+class catalyzes reactions. Functional mechanisms typically show electron
+transfers, step-by-step, with all intermediate molecular states, until the
+catalytic reaction is complete and the domain is restored.</p>
+
+<img alt="Serine Protease Mechanism First Step: Intermediate Formation" height="332" width="445" src="../images/serine_protease_mechanism.png">
+
+<p>FEATURE models one reactive atom for a given functional mechanism, such as
+the serine gamma oxygen (O&gamma;) or histidine delta or epsilon nitrogens
+(N&delta; or N&epsilon;) for serine protease functionality. The first step of
+the serine protease mechanism is shown in the figure above. Another
+example of reactive atoms includes any of three or four gamma sulfur (S&gamma;)
+in cysteine residues for ferredoxin functionality.  Therefore a given
+functional class may have multiple models.  Each match between a given protein
+and the models of a functional class is evidence that the protein may also
+belong to the modeled functional class.</p>
+
+<p>The end result of training data selection is a list of positions of the key
+atom in proteins belonging to a given functional class (positive training data
+points) and a list of positions of the reactive atom within proteins that are
+not in the given functional class (negative training data points). These lists
+are stored in separate files, one for the positive training data, one for the
+negative training data. They must follow the <a href="point_file.html">Point
+File format</a>.
+
+<p>The first step is to characterize the microenvironments at the points for 
+functionally similar active sites. This becomes the positive training data.
+The command to do this is as follows:</p>
+
+<tt>$ featurize -P positive_training_data.ptf &gt; positive_training_data.ff</tt>
+
+<p>Similarly, the command to characterize the negative training is as follows:</p>
+
+<tt>$ featurize -P negative_training_data.ptf &gt; negative_training_data.ff</tt>
+
+<p>The last step is to train the model on the data. The command to build a model based on training data is as follows:</p>
+
+<tt>$ buildmodel positive_training_data.ff negative_training_data.ff &gt; domain-atom.model</tt>
+
+<p>You may now use the resulting FEATURE model to search other protein 
+structures for functional activity.</p>
+
+<h3>How to Use FEATURE to Search for Functionality</h3>
+
+<p>This section explains how to use a given model (<tt>domain-atom.model</tt>) 
+to search for active sites in a given protein structure (<tt>pdb_id</tt>) using
+the following steps:</p>
+
+<ul>
+	<li>Select relevant atoms in the given protein structure</li>
+	<li>Characterize the microenvironments around the relevant atoms</li>
+	<li>Use the model to calculate scores for matches</li>
+</ul>
+
+<p>Because each model is based on the microenvironment around one reactive atom, 
+it saves time to look at each microenvironment of all occurrences of the same 
+reactive atom in a given protein. This is a recommended practice, not a 
+requirement; users are free to score every atom in a protein structure.</p>
+
+<p>To select all occurrences of the reactive atom, use 
+the <tt>atomselector.py</tt> utility as follows:</p>
+
+<tt>$ atomselector.py -r residue -a atom pdb_id &gt; pdb_id.ptf</tt>
+<tt>$ featurize -P pdb_id.ptf &gt; pdb_id.ff</tt><br>
+
+<p>Optionally, you can look at every atom in the structure.</p>
+
+<tt>$ featurize -P pdb_id &gt; pdb_id.ff</tt><br>
+
+<p>Once you have c
+
+<p>To search for active sites, type the following command:</p>
+
+<tt>$ scoreit -a domain-atom.model pdb_id.ff &gt; pdb_id.hits</tt>
+
+<p>The search results are called <i>hits</i> and are stored in the <tt>pdb_id.hits</tt> file
+which is in the <a href="score_file.html">Score File format</a>. The Score File format 
+assigns a score to each atom in the given protein structure
+The scores in the second column <tt>pdb_id.hits</tt> file indicate the relative
+goodness of the match at the . Higher scores indicate a stronger match. To see the top 5
+scores, you can use the following commands:</p>
+
+<tt>$ sort -k2 -n pdb_id.hits | tail -n 5</tt>
+
+<p>Each atom that scores high
+
+<h2>Running the Serine Protease Example</h2>
+
+<p>The Serine Protease example is included in FEATURE binaries for the purpose
+of education and testing. This example uses FEATURE to:</p>
+<ol>
+	<li> Build a model of the serine protease domain based on the 
+	microenvironment surrounding the OG atom of the conserved serine 
+	residue.<br>
+	The required inputs are:<br>
+	<ul>
+	<li>Positive Training Data: PDB structures of serine protease.</li>
+	<li>Negative Training Data: PDB structures of non-serine protease.</li>
+	</ul></li>
+	<li>Identify potential serine protease active sites by scoring Serine 
+	residues from other structures. For this example, we will score a known 
+	serine protease, TSV-PA (PDB ID 1bqy), which is an active component in 
+	the venom of the Chinese green tree viper and a hydrolase (PDB ID 1ufo) 
+	from an extremophile, Thermus thermophilus.</li>
+</ol>
+
+<h3>Open a Command Prompt/Terminal Window</h3>
+
+<p>FEATURE is run from the command prompt within a terminal window. To open a terminal window, select:</p>
+Mac OS X<br><b>Macintosh HD &gt; Applications &gt; Utilities &gt; Terminal</b><br><br>
+Red Hat Linux<br><b>Applications &gt; System Tools &gt; Terminal</b><br><br>
+
+<h3>Copy the Example Directory to Your Home Directory</h3>
+
+<p>The example is included in the FEATURE distribution which is
+available from the FEATURE Home Page <a href="https://simtk.org/home/feature">https://simtk.org/home/feature</a>.
+Type the following command to navigate to the example directory.</p>
+
+<p><tt>$ cp -Rf /usr/local/feature/examples/serprot ~</tt><br>
+<tt>$ cd serprot</tt></p>
+
+<h3>Build the model</h3>
+<p>The example directory contains data files for building a model of
+trypsin-like serine proteases. These data files contain the positive training
+set point file (<tt>trypsin_ser_og.pos.ptf</tt>) and the negative training set
+point file (<tt>trypsin_ser_og.neg.ptf</tt>).</p>
+
+<p><tt>trypsin_ser_og.pos.ff</tt></p>
+<p>XYZ coordinates of the conserved serine gamma oxygen atom from the PDB files of serine proteases. This is the positive training set point file.
+Note, 22 points are used here, but as few as 5 points can be used if enough examples are not available.</p>
+
+<p><tt>trypsin_ser_og.neg.ff</tt></p>
+
+<p>XYZ coordinates of the conserved serine OG atom from the PDB files of non-proteases. This is the negative training set point file.
+Note, 49 points are used here, but experiments show that more points give better results.</p>
+
+<p>
+To learn more about point files 
+(.ptf), see <a href="point_file.html">Point File</a>.<br>
+
+To create a model, the microenvironments (local environment) of these points need to be 
+characterized using <tt>featurize</tt>:</p>
+
+<pre class="fragment">
+$ featurize -P trypsin_ser_og.pos.ptf &gt; trypsin_ser_og.pos.ff
+$ featurize -P trypsin_ser_og.neg.ptf &gt; trypsin_ser_og.neg.ff
+</pre>
+
+<p>To learn more about the <tt>featurize</tt> program, see <a href="featurize.html">featurize</a> and
+<a href="feature_vector.html">FEATURE Vector File</a>. Note that <tt>featurize</tt> needs a 
+<tt>.dssp</tt> file for each <tt>.pdb</tt> file to function properly. The necessary files have
+already been created for you. To learn more about creating <tt>.dssp</tt> files, see 
+<a href="dssp.html">DSSP File</a></p>
+
+<p>After characterizing the environment, create a model using <tt>buildmodel</tt></p>
+<pre class="fragment">
+$ buildmodel trypsin_ser_og.pos.ff trypsin_ser_og.neg.ff &gt; trypsin_ser_og.model
+</pre>
+
+<p>To learn more about the <tt>buildmodel</tt> program, see <a href="buildmodel.html">buildmodel</a>.</p>
+
+<h3>Use the Model to Find Serine Protease Activity</h3>
+<p>Once a model is built, you can use it to identify locations with similar 
+environments on another protein structure. For instance 
+<a href="http://www.rcsb.org/pdb/cgi/explore.cgi?pdbId=1bqy">1bqy</a> is a 
+serine protease that was not in the original training set. You can also try 
+<a href="http://www.rcsb.org/pdb/cgi/explore.cgi?pdbId=1ufo">1ufo</a>.</p>
+
+<ol>
+<li>You'll need to make sure that there's a DSSP file for the PDB file of 
+your protein-of-interest. For <tt>1bqy</tt> and <tt>1ufo</tt>, this step 
+has already been done for you and you can skip this step (we are not the 
+developers of <tt>dsspcmbi</tt>, so installing and testing <tt>dsspcmbi</tt> 
+is beyond the scope of this tutorial).<br>
+For other PDB files (such as <tt>4hhb</tt>), you can create the DSSP file 
+with this command:
+<pre class="fragment">
+$ dsspcmbi pdb4hhb.ent pdb4hhb.dssp
+</pre>
+<br>
+</li>
+
+<li>Select the residues at which to scan. Generally these are the 
+residues and atoms that were used in the model. In this case, it is the 
+OG atom of the conserved serine residue:
+
+<pre class="fragment">
+$ atomselector.py -r ser -a og 1bqy &gt; 1bqy_ser_og.ptf
+</pre>
+<br>
+</li>
+
+<li>That will create a point file which can be fed into <tt>featurize</tt> to characterize the microenvironments:
+<pre class="fragment">
+$ featurize -P 1bqy_ser_og.ptf &gt; 1bqy_ser_og.ff
+</pre>
+<br>
+</li>
+
+<li>You can then use the model you built earlier to score all the micro-environments and then sort the results in ascending order.
+<pre class="fragment">
+$ scoreit -a trypsin_ser_og.model 1bqy_ser_og.ff &gt; 1bqy_ser_og.hits
+$ sort -k2 -n 1bqy_ser_og.hits &gt; 1bqy_ser_og.hits.sorted
+</pre>
+
+<p>To learn more about the <tt>scoreit</tt> program and its output, see 
+<a href="scoreit.html">scoreit</a> and 
+<a href="score_file.html">Score File</a> respectively.</p>
+<br>
+</li>
+
+<li>You can see the top 5 scoring hits in 1bqy by using:
+<pre class="fragment">
+$ tail -n 5 1bqy_ser_og.hits.sorted
+</pre>
+
+<p>You should see the highest scoring hits. The first field is just a unique 
+label for the site. The second field is the score for the site. The next three 
+fields are the x,y,z coordinates for the hit. The last field shows the 
+residue. SER195 is the catalytic serine for <tt>1bqy</tt>.</p>
+<pre class="fragment">
+Env_1bqy_0      -110.586184     11.959  25.312  62.893  #       SER29:A@OG
+Env_1bqy_32     -36.637977      37.557  8.635   139.522 #       SER214:B@OG
+Env_1bqy_15     -28.324812      22.436  37.11   53.493  #       SER214:A@OG
+Env_1bqy_31     149.060025      35.096  9.444   145.234 #       SER195:B@OG
+Env_1bqy_14     176.033218      19.642  39.631  59.232  #       SER195:A@OG
+</pre>
+</li>
+</ol>
+
+<h3>Summary of Steps</h3>
+<p>Here's the entire sequence of commands to issue, repeated for your convenience.</p>
+<pre class="fragment">
+$ cd /usr/local/feature/examples/serprot
+$ featurize -P trypsin_ser_og.pos.ptf &gt; trypsin_ser_og.pos.ff 
+$ featurize -P trypsin_ser_og.neg.ptf &gt; trypsin_ser_og.neg.ff
+$ buildmodel trypsin_ser_og.pos.ff trypsin_ser_og.neg.ff &gt; trypsin_ser_og.model
+$ dsspcmbi ../../data/pdb/pdb1bqy.ent ../../data/dssp/pdb1bqy.dssp
+$ atomselector.py -r ser -a og 1bqy &gt; 1bqy_ser_og.ptf
+$ featurize -P 1bqy_ser_og.ptf &gt; 1bqy_ser_og.ff
+$ scoreit -a trypsin_ser_og.model 1bqy_ser_og.ff &gt; 1bqy_ser_og.hits 
+$ sort -k2 -n 1bqy_ser_og.hits &gt; 1bqy_ser_og.hits.sorted
+$ tail -5 1bqy_ser_og.hits.sorted
+</pre>
+
+<p>We recommend that after downloading and installing the FEATURE desktop 
+binaries you run this test and check that the example output matches the
+above values.</p>
+
+<h2>Using Selectable Properties</h2>
+
+<p>One of the biggest improvements to FEATURE 3.1 is the ability to selectable
+properties. This means that you can customize how FEATURE characterizes
+microenvironments. To select properties, either copy <tt>proteins.properties</tt>
+or <tt>metals.properties</tt> and edit the file.</p>
+
+<p>For example:</p>
+
+<pre class="fragment">
+$ cp proteins.properties my.properties
+$ vim my.properties
+# ============================================================================
+# SELECTABLE PROPERTIES FILE
+# ============================================================================
+# This is a system-level file. To customize your own selectable properties,
+# copy this file to your directory.
+#
+# To indicate that you don't want to use a property, add a hash mark (#) in
+# front of the property name
+#
+# Example:
+# # ATOM_TYPE_IS_XYZ
+# ============================================================================
+
+  ATOM_TYPE_IS_C
+  ATOM_TYPE_IS_CT
+  ATOM_TYPE_IS_CA
+  ATOM_TYPE_IS_N
+</pre>
+
+<p>You can then comment out properties you don't want by adding a hash mark (#)
+in front of the property name.</p>
+
+<pre class="fragment">
+# ============================================================================
+# SELECTABLE PROPERTIES FILE
+# ============================================================================
+# This is a system-level file. To customize your own selectable properties,
+# copy this file to your directory.
+#
+# To indicate that you don't want to use a property, add a hash mark (#) in
+# front of the property name
+#
+# Example:
+# # ATOM_TYPE_IS_XYZ
+# ============================================================================
+
+# ATOM_TYPE_IS_C
+# ATOM_TYPE_IS_CT
+# ATOM_TYPE_IS_CA
+  ATOM_TYPE_IS_N
+</pre>
+
+<p>To add new properties, simply type the property name. In the example below,
+we add the property <tt>AMIDE_CARBON</tt>.</p>
+
+<pre class="fragment">
+# ============================================================================
+# SELECTABLE PROPERTIES FILE
+# ============================================================================
+# This is a system-level file. To customize your own selectable properties,
+# copy this file to your directory.
+#
+# To indicate that you don't want to use a property, add a hash mark (#) in
+# front of the property name
+#
+# Example:
+# # ATOM_TYPE_IS_XYZ
+# ============================================================================
+
+  AMIDE_CARBON
+# ATOM_TYPE_IS_C
+# ATOM_TYPE_IS_CT
+# ATOM_TYPE_IS_CA
+  ATOM_TYPE_IS_N
+</pre>
+
+<p>Once you have the properties customized as you like, call <tt>featurize</tt>
+with the <tt>-l</tt> option as shown below.</p>
+
+<pre class="fragment">
+$ featurize -l my.properties -P my_pointfile.ptf
+</pre>
+
+<p>For more information on how to use <tt>featurize</tt>, see <a
+href="programs.html#featurize">featurize</a>. For more information on selectable
+properties, see <a href="selectable_properties_file.html">selectable properties
+file</a>. For more information on properties in general, see <a
+href="physicochemical_properties.html">physicochemical properties</a>. As
+always if you have questions, feel free to e-mail <a
+href="mailto:feature-users@simtk.org">feature-users@simtk.org</a>.</p>
+
+</body>
+</html>

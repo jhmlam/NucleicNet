@@ -1,0 +1,13 @@
+#! /usr/bin/perl -p
+
+BEGIN {
+    print 'set title "',@ARGV,'"',"\n";
+    print 'set xrange [0.0:1.0]',"\n";
+    print 'set yrange [0.0:1.0]',"\n";
+    print 'set xlabel "Sensitivity"',"\n";
+    print 'set ylabel "Positive Predictive Value"',"\n";
+    print 'set terminal png',"\n";
+#    print 'set output "plot.png"',"\n";
+    print 'plot "-" using 3:5 smooth unique notitle with linespoints',"\n";
+    $dummy=<>;
+}

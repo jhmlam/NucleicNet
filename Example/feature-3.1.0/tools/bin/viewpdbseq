@@ -1,0 +1,31 @@
+#! /usr/bin/env perl
+
+@pdbids = @ARGV;
+@pdbids = <> if ($#pdbids == -1);
+$pdbid = join("|",@pdbids);
+$pdbid =~ s/\s+//g;
+
+eusage() unless $pdbid =~ /\w/;
+
+$pdbseqresfile = &pathsearch("derived_data/pdb_seqres.txt",split(/:/,$ENV{PDB_DIR}));
+$pdbseqresfile || die "Could not find pdb_seqres\n";
+open(INFH,"< $pdbseqresfile") || die "Could not open $pdbseqresfile\n";
+
+while (<INFH>) {
+    $flag = /^>$pdbid/i if /^>/;
+    print if ($flag);
+}
+
+sub eusage {
+    print "Usage: $0 PDBIDS...\n";
+    exit;
+}
+
+sub pathsearch {
+    my($filename,@paths) = @_;
+    foreach $path (@paths) {
+        $fullname = "$path/$filename";
+        return $fullname if -e $fullname;
+    }
+    return undef;
+}

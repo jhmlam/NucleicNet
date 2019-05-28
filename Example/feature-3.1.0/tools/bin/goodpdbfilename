@@ -1,0 +1,15 @@
+#! /usr/bin/env python
+
+import sys,os
+import pdbutils
+
+pdbids = []
+args = sys.argv[1:]
+pdbids.extend(args)
+if not args:
+    pdbids.extend([x.strip() for x in sys.stdin])
+
+for pdbid in pdbids:
+    pdbid = pdbid.strip()
+    pdbfilename = pdbutils.goodpdbfilename(pdbid)
+    print "%s\t%s" % (pdbid,pdbfilename)
