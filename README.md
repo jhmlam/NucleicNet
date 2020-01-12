@@ -7,6 +7,6 @@ Protein-RNA interaction is ubiquitous in cells and serves as the main mechanism 
 The NucleicNet is hosted on our webserver (http://www.cbrc.kaust.edu.sa/NucleicNet/). Here, we distribute a version that operates on Linux machines (Centos 7 /Ubuntu >= 16). **For instructions on installation and usage, please refer to our structured Wiki page (https://github.com/NucleicNet/NucleicNet/wiki).** Examples of PDB format files are stored in the "GridData" folder of the current directory. Expected outputs (except files exceeding 100 MB in size) are stored at the "Example" folder (https://github.com/NucleicNet/NucleicNet/tree/master/Example).
 
 # How to cite NucleicNet?
-(In preparation)
+Lam, J.H., Li, Y., Zhu, L. et al. A deep learning framework to predict binding preference of RNA constituents on protein surface. Nat Commun 10, 4941 (2019) doi:10.1038/s41467-019-12920-0
 
 	
