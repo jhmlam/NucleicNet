@@ -1,6 +1,6 @@
 # NucleicNet
 
-Protein-RNA interaction is ubiquitous in cells and serves as the main mechanism for post-transcriptional regulation. Base-dominant interaction and backbone-dominant interaction categorize the two main modes of the way RNA interacting with proteins. Despite the advances in experimental technologies and computational methods to capture protein-RNA interactions, estimating binding preference of RNA backbone constituents and different bases on any location of a given protein surface is beyond the capacity of existing techniques. Here we show that these attributes can be predicted from the local physicochemical characteristics of the protein structure surface, by leveraging the power of deep learning. [Our legacy webserver is hosted here!](http://www.cbrc.kaust.edu.sa/NucleicNet/) The NucleicNet is distributed under GNU AGPLv3. This code is meant to serve as a (great!) tutorial, and a basis for researchers to explore protein-surface learning tasks. We hope you all enjoy. 
+Protein-RNA interaction is ubiquitous in cells and serves as the main mechanism for post-transcriptional regulation. Base-dominant interaction and backbone-dominant interaction categorize the two main modes of the way RNA interacting with proteins. Despite the advances in experimental technologies and computational methods to capture protein-RNA interactions, estimating binding preference of RNA backbone constituents and different bases on any location of a given protein surface is beyond the capacity of existing techniques. Here we show that these attributes can be predicted from the local physicochemical characteristics of the protein structure surface, by leveraging the power of deep learning. 
 
 ## How to cite us?
 * Lam, J.H., Li, Y., Zhu, L. et al. A deep learning framework to predict binding preference of RNA constituents on protein surface. Nat Commun 10, 4941 (2019). https://doi.org/10.1038/s41467-019-12920-0
@@ -14,12 +14,12 @@ Protein-RNA interaction is ubiquitous in cells and serves as the main mechanism 
 
 This repository presents NucleicNet as a more developer-friendly package closely reproduces our work in 2019. Since early 2022, we have been working on modularising NuleicNet and simplifying its installation and its dependecies. The package presented here handles recent changes in PDB's query API as well as the ever increasing sizes of structures due to cryo-EM produced in recent years. We have also migrated from Tensorflow 1 to Pytorch as TF1 is difficult to maintain and stay competitive. All the codes are now written with python 3. Walkthroughs for dataset-building, training and downstream applications are included in Notebooks. 
 
-* `Notebook 0-3` is for production of the dataset taking care of PDB structures <= 2021.
-* `Notebook 4` is optional for understanding the structure and basic statistics of Altman's feature vector.
-* `Notebook 5` is for training of models and `Notebook 6` for 3-fold cross validation. 
-* `Notebook 7` is for downstream applications (pymol visualisation and Sequence logo) as in service provided by our webserver.
+* `Notebook 00-03` is for production of the dataset taking care of PDB structures <= 2021.
+* `Notebook 04` is optional for understanding the structure and basic statistics of Altman's feature vector.
+* `Notebook 05` is for training of models and `Notebook 06` for 3-fold cross validation. 
+* `Notebook 07` is for downstream applications (pymol visualisation and Sequence logo) as in service provided by our webserver.
 
-The NucleicNet is distributed under GNU AGPLv3. This code is meant to serve as a (great!) tutorial, and a basis for researchers to explore protein-surface learning tasks. We hope you all enjoy. To reproduce the results for the paper exactly as published go to our [webserver this way!](http://www.cbrc.kaust.edu.sa/NucleicNet/). A few essential improvements built upon our paper in 2019.
+The NucleicNet is distributed under GNU AGPLv3. This code is meant to serve as a (great!) tutorial, and a basis for researchers to explore protein-surface learning tasks. We hope you all enjoy. To reproduce the results for the paper exactly as published go to our [legacy webserver this way!](http://www.cbrc.kaust.edu.sa/NucleicNet/). A few essential improvements built upon our paper in 2019.
 
 ### Dataset
 * We have updated our dataset to RNA-bound PDB entries released before 2022. Importantly, not all RNA-bound entries carry base preference; examples of non-specific binding are shape-dependent components with disproportionately large amount of backbone contact e.g. ribosome, trna, etc. Again, literature accompanying the structure is consulted to avoid including close-contact-but-no-preference cases. 
@@ -39,10 +39,10 @@ Previously, we use a very small batch size (128) to train our Resnet. But since 
 * Rather than visualising only a fixed percentile of multi-label voxels. We implemented a thresholding scheme based on bit fraction (fractional height on logo diagrams) at each location. This allows a more systematic visualisation of multi-labels.
 
 ## Upcoming Release v 1.2
-* Blast Clust is retired from PDB since January 2022. While we kept a version from January 2022, we will likely transit to the MMseq2 clusters.
-* NPIDB is no longer available. We will remove this dependency completely in the future.
-* A better handle for structures with size exceeding pdb format limit. 
-* Bayesian hierarchical model for base classication considering pyrimidine and purine. 
+- [ ] Blast Clust is retired from PDB since January 2022. While we kept a version from January 2022, we will likely transit to the MMseq2 clusters.
+- [ ] NPIDB is no longer available. We will remove this dependency completely in the future.
+- [ ] A better handle for structures with size exceeding pdb format limit. 
+- [ ] Bayesian hierarchical model for base classication considering pyrimidine, purine and null. 
 
 
 ## FAQ
