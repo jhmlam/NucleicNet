@@ -9,12 +9,25 @@ Protein-RNA interaction is ubiquitous in cells and serves as the main mechanism 
 * 
 
 
+# System and hardware requirements
+Installation of our software is handled in `Notebook 00`. We only support Linux workstations. Below are specs where the software has been tested.
 
-## Release Notes v1.1 June 2022
+* System. Ubuntu 20.04.3 LTS
+* Processor. AMD Opteron(tm) processor 6376 × 32
+* Storage. More than 500 GB storage. Git clone of the repo takes 12GB, compressed. After all the decompressions in `Notebook 00`, it can take > 85 GB. See the breakdown in `Notebook 00`
+* RAM. At least 32 GB.
+* Nvidia GPU. On par with a GeForce GTX 1070
+
+
+
+# Release Notes
+
+## v1.1 June 2022
 
 This repository presents NucleicNet as a more developer-friendly package closely reproduces our work in 2019. Since early 2022, we have been working on modularising NuleicNet and simplifying its installation and its dependecies. The package presented here handles recent changes in PDB's query API as well as the ever increasing sizes of structures due to cryo-EM produced in recent years. We have also migrated from Tensorflow 1 to Pytorch as TF1 is difficult to maintain and stay competitive. All the codes are now written with python 3. Walkthroughs for dataset-building, training and downstream applications are included in Notebooks. 
 
-* `Notebook 00-03` is for production of the dataset taking care of PDB structures <= 2021.
+* `Notebook 00` is for installation of our software.
+* `Notebook 01-03` is for production of the dataset taking care of PDB structures <= 2021.
 * `Notebook 04` is optional for understanding the structure and basic statistics of Altman's feature vector.
 * `Notebook 05` is for training of models and `Notebook 06` for 3-fold cross validation. 
 * `Notebook 07` is for downstream applications (pymol visualisation and Sequence logo) as in service provided by our webserver.
@@ -38,18 +51,18 @@ Previously, we use a very small batch size (128) to train our Resnet. But since 
 ### Visualisation
 * Rather than visualising only a fixed percentile of multi-label voxels. We implemented a thresholding scheme based on bit fraction (fractional height on logo diagrams) at each location. This allows a more systematic visualisation of multi-labels.
 
-## Upcoming Release v 1.2
+## Upcoming v 1.2
 - [ ] Blast Clust is retired from PDB since January 2022. While we kept a version from January 2022, we will likely transit to the MMseq2 clusters.
 - [ ] NPIDB is no longer available. We will remove this dependency completely in the future.
 - [ ] A better handle for structures with size exceeding pdb format limit. 
 - [ ] Bayesian hierarchical model for base classication considering pyrimidine, purine and null. 
 
 
-## FAQ
+# FAQ
 
 0. Q. How to get started? What to look for?
 *  A. Walkthroughs for dataset-building, training and downstream applications are included in `Notebooks` folder. 
-
+* * `Notebook 00` is for installation of our software.
 * * `Notebook 00-03` is for production of the dataset taking care of PDB structures <= 2021.
 * * `Notebook 04` is optional for understanding the structure and basic statistics of Altman's feature vector.
 * * `Notebook 05` is for training of models and `Notebook 06` for 3-fold cross validation. 
