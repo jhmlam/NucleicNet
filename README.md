@@ -8,6 +8,16 @@ Protein-RNA interaction is ubiquitous in cells and serves as the main mechanism 
 
 ## FAQ
 
+0. Q. How to get started? What to look for?
+*  A. Walkthroughs for dataset-building, training and downstream applications are included in `Notebooks` folder. 
+
+* `Notebook 0-3` is for production of the dataset taking care of PDB structures <= 2021.
+* `Notebook 4` is optional for understanding the structure and basic statistics of Altman's feature vector.
+* `Notebook 5` is for training of models and `Notebook 6` for 3-fold cross validation. 
+* `Notebook 7` is for downstream applications (pymol visualisation and Sequence logo) as in service provided by our webserver.
+
+
+
 1. Q. Dataset. We need PDBID, grid coordinates and the corresponding labels. Where can I find it?
 *  A. Follow through Notebook 00 - 03. You will find the coordinate under `Database-PDB/halo/{pdbid}{conformerid}.xyz` and the corresponding labels under `Database-PDB/typi/{pdbid}{conformerid}.typi`. The PDBIDs for cross-fold classification is stored as a pickled pandas dataframe at `Database-PDB/DerivedData/TaskClanFoldDf_TaskAUCG_BC90_Fold9.pkl` and `Database-PDB/DerivedData/TaskClanFoldDf_TaskSXPR_BC90_Fold9.pkl`.
 
