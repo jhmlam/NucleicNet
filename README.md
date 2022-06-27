@@ -5,16 +5,19 @@ Protein-RNA interaction is ubiquitous in cells and serves as the main mechanism 
 ## How to cite us?
 * Lam, J.H., Li, Y., Zhu, L. et al. A deep learning framework to predict binding preference of RNA constituents on protein surface. Nat Commun 10, 4941 (2019). https://doi.org/10.1038/s41467-019-12920-0
 
+## Acknowledgement
+* 
+
 
 ## FAQ
 
 0. Q. How to get started? What to look for?
 *  A. Walkthroughs for dataset-building, training and downstream applications are included in `Notebooks` folder. 
 
-* `Notebook 0-3` is for production of the dataset taking care of PDB structures <= 2021.
-* `Notebook 4` is optional for understanding the structure and basic statistics of Altman's feature vector.
-* `Notebook 5` is for training of models and `Notebook 6` for 3-fold cross validation. 
-* `Notebook 7` is for downstream applications (pymol visualisation and Sequence logo) as in service provided by our webserver.
+* * `Notebook 0-3` is for production of the dataset taking care of PDB structures <= 2021.
+* * `Notebook 4` is optional for understanding the structure and basic statistics of Altman's feature vector.
+* * `Notebook 5` is for training of models and `Notebook 6` for 3-fold cross validation. 
+* * `Notebook 7` is for downstream applications (pymol visualisation and Sequence logo) as in service provided by our webserver.
 
 
 
@@ -58,7 +61,7 @@ Previously, we use a very small batch size (128) to train our Resnet. But since 
 ## Upcoming Release v 1.2
 * Blast Clust is retired from PDB since January 2022. While we kept a version from January 2022, we will likely transit to the MMseq2 clusters.
 * NPIDB is no longer available. We will remove this dependency completely in the future.
-* A better handle for structures with size exceeding pdb format limit
+* A better handle for structures with size exceeding pdb format limit. 
 * Bayesian hierarchical model for base classication considering pyrimidine and purine. 
 
 
