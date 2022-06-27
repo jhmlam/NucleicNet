@@ -9,26 +9,6 @@ Protein-RNA interaction is ubiquitous in cells and serves as the main mechanism 
 * 
 
 
-## FAQ
-
-0. Q. How to get started? What to look for?
-*  A. Walkthroughs for dataset-building, training and downstream applications are included in `Notebooks` folder. 
-
-* * `Notebook 0-3` is for production of the dataset taking care of PDB structures <= 2021.
-* * `Notebook 4` is optional for understanding the structure and basic statistics of Altman's feature vector.
-* * `Notebook 5` is for training of models and `Notebook 6` for 3-fold cross validation. 
-* * `Notebook 7` is for downstream applications (pymol visualisation and Sequence logo) as in service provided by our webserver.
-
-
-
-1. Q. Dataset. We need PDBID, grid coordinates and the corresponding labels. Where can I find it?
-*  A. Follow through Notebook 00 - 03. You will find the coordinate under `Database-PDB/halo/{pdbid}{conformerid}.xyz` and the corresponding labels under `Database-PDB/typi/{pdbid}{conformerid}.typi`. The PDBIDs for cross-fold classification is stored as a pickled pandas dataframe at `Database-PDB/DerivedData/TaskClanFoldDf_TaskAUCG_BC90_Fold9.pkl` and `Database-PDB/DerivedData/TaskClanFoldDf_TaskSXPR_BC90_Fold9.pkl`.
-
-2. Q. Sequence redundancy handle. You mentioned a lot about avoidance of internal and external redundancy, but how to incorporate these philosophy as a training strategy.
-*  A. We make it easier for developers. The folds indicated in `Database-PDB/DerivedData/TaskClanFoldDf_Task*_BC90_Fold9.pkl` are readily separated using blast-clust 90. (See relevant codes in Notebook 00 - 03 on how to do it fresh new.) In general, these redundancies refer to copies of the same protein existing among different PDB entries (external) and within the same PDB entry (internal). They can be handled by clustering homologous sequences (e.g. BlastClust or MMseq2) and grouping entries sharing clusters as clans. For handling external redundancy, cross fold validation is done on disjoint clans. For handling internal redundancy, weighted sampling is done to retrieve equal amount of sample from each clan in each batch during training. These strategies are incorporated into our dataloaders. Since [April 2022 BlastClust is retired from PDB](https://groups.google.com/a/rcsb.org/g/api/c/ALLI4pouK_w) and we are still figuring out how to do it with MMseq2.
-
-3. Q. Sanitization of Coordinates. We understand that raw PDB coordinates are difficult to process and the structure does matters a lot for a structure-based software. Garbage-in-garbage-out. How should we prepare for an amenable 'okay' PDB coordinate input? 
-*  A. We provide a very basic sanitization protocol when calling Notebook 7 as a downstream application, but for a very detailed protocol we used to build the training coordinate in dataset, please consult to `NucleicNet/DatasetBuilding/commandCoordinate.py`. We also provide some general guidelines on [our structured Wiki page](https://github.com/jhmlam/NucleicNet/wiki/Specification-on-PDB-input-files); we will write more about this. Examples of acceptable files are stored in the `LocalServerExample/*.pdb`.
 
 ## Release Notes v1.1 June 2022
 
@@ -65,3 +45,23 @@ Previously, we use a very small batch size (128) to train our Resnet. But since 
 * Bayesian hierarchical model for base classication considering pyrimidine and purine. 
 
 
+## FAQ
+
+0. Q. How to get started? What to look for?
+*  A. Walkthroughs for dataset-building, training and downstream applications are included in `Notebooks` folder. 
+
+* * `Notebook 00-03` is for production of the dataset taking care of PDB structures <= 2021.
+* * `Notebook 04` is optional for understanding the structure and basic statistics of Altman's feature vector.
+* * `Notebook 05` is for training of models and `Notebook 06` for 3-fold cross validation. 
+* * `Notebook 07` is for downstream applications (pymol visualisation and Sequence logo) as in service provided by our webserver.
+
+
+
+1. Q. Dataset. We need PDBID, grid coordinates and the corresponding labels. Where can I find it?
+*  A. You will find the coordinate under `Database-PDB/halo/{pdbid}{conformerid}.xyz` and the corresponding labels under `Database-PDB/typi/{pdbid}{conformerid}.typi`. The PDBIDs for cross-fold classification is stored as a pickled pandas dataframe at `Database-PDB/DerivedData/TaskClanFoldDf_TaskAUCG_BC90_Fold9.pkl` and `Database-PDB/DerivedData/TaskClanFoldDf_TaskSXPR_BC90_Fold9.pkl`. But, for a fresh new preparation, follow through `Notebook 00 - 03`. 
+
+2. Q. Sequence redundancy handle. You mentioned a lot about avoidance of internal and external redundancy, but how to incorporate these philosophies as a training strategy.
+*  A. We make it easier for developers. The folds indicated in `Database-PDB/DerivedData/TaskClanFoldDf_Task*_BC90_Fold9.pkl` are readily separated using blast-clust 90. (See relevant codes in Notebook 00 - 03 on how to do it fresh new.) In general, these redundancies refer to copies of the same protein existing among different PDB entries (external) and within the same PDB entry (internal). They can be handled by clustering homologous sequences (e.g. BlastClust or MMseq2) and grouping entries sharing clusters as clans. For handling external redundancy, cross fold validation is done on disjoint clans. For handling internal redundancy, weighted sampling is done to retrieve equal amount of sample from each clan in each batch during training. These strategies are incorporated into our dataloaders. Since [April 2022 BlastClust is retired from PDB](https://groups.google.com/a/rcsb.org/g/api/c/ALLI4pouK_w) and we are still figuring out how to do it with MMseq2.
+
+3. Q. Sanitization of Coordinates. We understand that raw PDB coordinates are difficult to process and the structure does matters a lot for a structure-based software. Garbage-in-garbage-out. How should we prepare for an amenable 'okay' PDB coordinate input? 
+*  A. We provide a very basic sanitization protocol when calling Notebook 7 as a downstream application, but for a very detailed protocol we used to build the training coordinate in dataset, please consult to `NucleicNet/DatasetBuilding/commandCoordinate.py`. We also provide some general guidelines on [our structured Wiki page](https://github.com/jhmlam/NucleicNet/wiki/Specification-on-PDB-input-files); we will write more about this. Examples of acceptable files are stored in the `LocalServerExample/*.pdb`.
