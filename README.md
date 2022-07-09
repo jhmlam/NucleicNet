@@ -27,7 +27,8 @@ Installation of our software is handled in `Notebook 00`. We only support Linux 
 This repository presents NucleicNet as a more developer-friendly package closely reproduces our work in 2019. Since early 2022, we have been working on modularising NuleicNet and simplifying its installation and its dependecies. The package presented here handles recent changes in PDB's query API as well as the ever increasing sizes of structures due to cryo-EM produced in recent years. We have also migrated from Tensorflow 1 to Pytorch as TF1 is difficult to maintain and stay competitive. All the codes are now written with python 3. Walkthroughs for dataset-building, training and downstream applications are included in Notebooks. 
 
 * `Notebook 00` is for installation of our software.
-* `Notebook 01-03` is for production of the dataset taking care of PDB structures <= 2021.
+* `Notebook 01-02` is for production of the dataset taking care of PDB structures <= 2021.
+* `Notebook 03` is for production of Altman vector. Caution. It will take a large storage space.
 * `Notebook 04` is optional for understanding the structure and basic statistics of Altman's feature vector.
 * `Notebook 05` is for training of models and `Notebook 06` for 3-fold cross validation. 
 * `Notebook 07` is for downstream applications (pymol visualisation and Sequence logo) as in service provided by our webserver.
@@ -35,7 +36,7 @@ This repository presents NucleicNet as a more developer-friendly package closely
 The NucleicNet is distributed under GNU AGPLv3. This code is meant to serve as a (great!) tutorial, and a basis for researchers to explore protein-surface learning tasks. We hope you all enjoy. To reproduce the results for the paper exactly as published go to our [legacy webserver this way!](http://www.cbrc.kaust.edu.sa/NucleicNet/). A few essential improvements built upon our paper in 2019.
 
 ### Dataset
-* We have updated our dataset to RNA-bound PDB entries released before 2022. Importantly, not all RNA-bound entries carry base preference; examples of non-specific binding are shape-dependent components with disproportionately large amount of backbone contact e.g. ribosome, trna, etc. Again, literature accompanying the structure is consulted to avoid including close-contact-but-no-preference cases. 
+* We have updated our dataset to RNA-bound PDB entries released before 2022. Importantly, not all RNA-bound entries carry base preference; examples of non-specific binding are shape-dependent components with disproportionately large amount of backbone contact e.g. ribosome, trna, etc. Literature accompanying the structure was consulted to avoid including close-contact-but-no-preference cases. 
 * Several PDB entries are obsolete or superceded. They are excluded from consideration.
 * Sparse Storage of Altman features. We have shifted away from storing a dense matrix of Altman features to a CSR format to handle the ever-growing structure size on PDB. 
 
@@ -55,6 +56,7 @@ Previously, we use a very small batch size (128) to train our Resnet. But since 
 - [ ] Mmseq2. [Blast Clust is retired from PDB since April 2022](https://groups.google.com/a/rcsb.org/g/api/c/ALLI4pouK_w). While we kept a version from January 2022, we will likely transit to the MMseq2 clusters.
 - [ ] NPIDB. NPIDB is no longer available. We will remove this dependency completely in the future.
 - [ ] Cif and Ensemble. A better handle for structures with size exceeding pdb format limit. [PDB finally distribute assembly cif in May 2022!](https://www.rcsb.org/news/feature/62559153c8eabd0c4864f208)
+- [ ] Bayesian uncertainty. 
 - [ ] Bayesian hierarchical model. For base classication considering pyrimidine, purine and null. For site non site classification, considering site non-site. 
 
 
@@ -71,7 +73,7 @@ Previously, we use a very small batch size (128) to train our Resnet. But since 
 
 
 1. Q. Dataset. We need PDBID, grid coordinates and the corresponding labels. Where can I find it?
-*  A. You will find the coordinate under `Database-PDB/halo/{pdbid}{conformerid}.xyz` and the corresponding labels under `Database-PDB/typi/{pdbid}{conformerid}.typi`. The PDBIDs for cross-fold classification is stored as a pickled pandas dataframe at `Database-PDB/DerivedData/TaskClanFoldDf_TaskAUCG_BC90_Fold9.pkl` and `Database-PDB/DerivedData/TaskClanFoldDf_TaskSXPR_BC90_Fold9.pkl`. But, for a fresh new preparation, follow through `Notebook 00 - 03`. 
+*  A. You will find the coordinate under `Database-PDB/halo/{pdbid}{conformerid}.xyz` and the corresponding labels under `Database-PDB/typi/{pdbid}{conformerid}.typi`. The PDBIDs for cross-fold classification in BC90 convention is stored as a pickled pandas dataframe at `Database-PDB/DerivedData/TaskClanFoldDf_TaskAUCG_BC90_Fold9.pkl` and `Database-PDB/DerivedData/TaskClanFoldDf_TaskSXPR_BC90_Fold9.pkl`. But, for a fresh new preparation, follow through `Notebook 00 - 03`. 
 
 2. Q. Sequence redundancy handle. You mentioned a lot about avoidance of internal and external redundancy, but how to incorporate these philosophies as a training strategy.
 *  A. We make it easier for developers. The folds indicated in `Database-PDB/DerivedData/TaskClanFoldDf_Task*_BC90_Fold9.pkl` are readily separated using blast-clust 90. (See relevant codes in Notebook 00 - 03 on how to do it fresh new.) In general, these redundancies refer to copies of the same protein existing among different PDB entries (external) and within the same PDB entry (internal). They can be handled by clustering homologous sequences (e.g. BlastClust or MMseq2) and grouping entries sharing clusters as clans. For handling external redundancy, cross fold validation is done on disjoint clans. For handling internal redundancy, weighted sampling is done to retrieve equal amount of sample from each clan in each batch during training. These strategies are incorporated into our dataloaders. Since [April 2022 BlastClust is retired from PDB](https://groups.google.com/a/rcsb.org/g/api/c/ALLI4pouK_w) and we are still figuring out how to do it with MMseq2.
