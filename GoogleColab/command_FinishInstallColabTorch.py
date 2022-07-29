@@ -6,7 +6,7 @@ import pandas
 import plotly
 import torchmetrics
 import biopandas
-import scikit-learn
+import sklearn
 import tqdm
 
 torch.backends.cudnn.is_available()
