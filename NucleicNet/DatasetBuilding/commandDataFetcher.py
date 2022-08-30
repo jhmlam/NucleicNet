@@ -1,35 +1,3 @@
-# =================================================================================
-#    NucleicNet
-#    Copyright (C) 2019-2022  Jordy Homing Lam, JHML. All rights reserved.
-#    
-#    Acknowledgement. 
-#    JHML would like to thank Mingyi Xue and Joshua Chou for their patience and efforts 
-#    in the debugging process and Prof. Xin Gao and Prof. Xuhui Huang for their 
-#    continuous support.
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published
-#    by the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    Redistribution and use in source and binary forms, with or without
-#    modification, are permitted provided that the following conditions are
-#    met:
-#
-#    * Redistributions of source code must retain the above copyright notice, 
-#    this list of conditions and the following disclaimer.
-#    * Redistributions in binary form must reproduce the above copyright notice, 
-#    this list of conditions and the following disclaimer in the documentation and/or 
-#    other materials provided with the distribution.
-#    * Cite our work at Lam, J.H., Li, Y., Zhu, L. et al. A deep learning framework to predict binding preference of RNA constituents on protein surface. Nat Commun 10, 4941 (2019). https://doi.org/10.1038/s41467-019-12920-0
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# ==================================================================================
 
 import subprocess
 #from biopandas.pdb import PandasPdb
@@ -890,6 +858,7 @@ def OOC_Pdbid_TorchDataset(pdbid, classindex_int = {},
                 idx_y[c] = idx_y[c][::data_stride]
                 idx_x[c] = idx_x[c][::data_stride]
             #sys.exit()
+
         # =======================
         # Get feature (Slow)
         # ========================
@@ -905,6 +874,7 @@ def OOC_Pdbid_TorchDataset(pdbid, classindex_int = {},
             train_x.append(train_x__)
             train_y.extend(idx_y[c])
             total_leng += len(idx_y[c])
+
         try:
             train_x = np.concatenate(train_x, axis=0)
         except:
@@ -1037,6 +1007,114 @@ def OOC_Pdbid_TorchDataset(pdbid, classindex_int = {},
         return train_x, train_y, train_yyyy, pdbid
 
 
+def OOC_Pdbid_TorchNoOpSingleDataset(pdbid, classindex_int = {}, 
+                                Assigned_PdbidWeight = {},
+                                feature_mean = None, #IPCA_Mean,
+                                feature_std = None, #IPCA_Std,
+                                feature_resizeshape = None, #(6,80)
+                                feature_component_size = 60,
+                                feature_component = None,
+                                feature_einsum_mean = None,
+                                feature_einsum_std = None,
+                                data_stride = 1, 
+                                FetchIndexC = None,
+                                LabelTreeLogic = None,
+                                ReturnRawAltman = False,
+                                User_NeighborLabelSmoothAngstrom = 1.5,
+                                DIR_Typi = "../Database-PDB/typi/",
+                                ):
+
+        # =====================
+        # Load Typi (Fast)
+        # =====================
+        
+        with np.load("%s/%s.typi.npz" %(DIR_Typi, pdbid)) as f:
+                typi = sparse.csr_matrix((f['data'], f['indices'], f['indptr']), shape= f['shape'])
+    
+        # NOTE obtain Index where class is available
+        Class_To_Idx_Dict = FetchIndexC.Typi_TreeLogicClass(typi , 
+                                LabelTreeLogic = LabelTreeLogic,
+                                ReturnSeperateInDict = True)
+        TotalNumberOfX = typi.shape[0]
+        idx_x = np.array(list(range(TotalNumberOfX))).astype(int)
+
+        if data_stride > 1 :
+            idx_x = idx_x[::data_stride]
+        
+        # =======================
+        # Get feature (Slow)
+        # ========================
+        train_x = FetchIndexC.UTIL_Index_Feature(idx_x, 
+                                    pdbid = pdbid, featuretype = "altman", ReturnDense = True)
+        train_y = [0 for i in idx_x]
+        total_leng = len(idx_x)
+        train_y_hot = torch.nn.functional.one_hot(torch.LongTensor(train_y).type(torch.int64), num_classes=len(sorted(Class_To_Idx_Dict.keys()))).type(torch.float32)
+        train_yyyy = torch.zeros(total_leng, len(sorted(Class_To_Idx_Dict.keys())))
+        #print(train_yyyy.shape)
+
+        train_yyyy = train_y_hot
+
+
+
+
+        train_y = np.array(train_y, dtype= int)
+
+
+
+        train_x_size = train_x.shape[0]
+        train_x = torch.FloatTensor(train_x)
+        train_y = torch.LongTensor(train_y)
+
+
+        if ReturnRawAltman:
+            return train_x, train_y, train_yyyy, pdbid
+
+        # ==========================
+        # Process feature (Fast)
+        # ==========================
+        #if feature_mean is not None:                                   # NOTE Close to zero. But the global mean is tested batch sensitive. I will leave this to Batch norm.
+        #    train_x -= torch.FloatTensor(feature_mean)
+            
+        if feature_std is not None: 
+            train_x /= torch.FloatTensor(feature_std)
+
+        train_x = torch.nan_to_num(train_x, nan = 0.0, posinf = 0.0, neginf = 0.0)
+
+
+
+
+        if feature_resizeshape is not None:
+            train_x.resize_((train_x_size, *feature_resizeshape)).unsqueeze_(1)
+
+        if feature_component is not None:
+            assert (feature_resizeshape is not None)
+            #assert (feature_einsum_mean is not None)
+            #assert (feature_einsum_std is not None)
+            feature_component = feature_component[:feature_component_size,:]
+            feature_component = torch.FloatTensor(feature_component)
+            feature_component.resize_((feature_component_size, *feature_resizeshape))
+            #train_x[:,:,:,2] = 0.0 # NOTE Remove c-alpha as a feature 
+            #train_x[:,:,:,6] = 0.0 # NOTE Remove nitrogen sp2 with hydrogen i.e. histidine as a feature
+            train_x = torch.einsum('bcsf,gsf->bcsg', train_x, feature_component)
+
+            Reduction_reciprocalstd = torch.tensor(ReciprocalStd_Projected[:,:feature_component_size], dtype = torch.float32)
+            Reduction_reciprocalstd.unsqueeze_(0)
+
+            train_x = torch.einsum('bsf,bcsf->bcsf', Reduction_reciprocalstd,train_x)
+            
+        train_x = torch.nan_to_num(train_x, nan = 0.0, posinf = 0.0, neginf = 0.0)
+
+        # TODO Clamp
+        sign = train_x.sign()
+        train_x.abs_()
+        train_x[train_x <= 1e-6] = 0.0
+        train_x *= sign
+
+
+        #print(train_x, train_y, train_yyyy, pdbid)
+        #ds = NucleicNet.Fuel.DS2.BasicMap(train_x, train_y)
+        #return ds, pdbid
+        return train_x, train_y, train_yyyy, pdbid
 
 
 class FetchDataset():
@@ -1213,6 +1291,70 @@ class FetchDataset():
         return ds_temp, ds_samplingweight
                 
 
+    def GetNoOpSingleDataset(self,Assigned_PdbidBatch = [],
+                        Assigned_PdbidWeight = {},
+                        ClassName_ClassIndex_Dict = {"A":0, "C": 1, "G": 2, "U": 3},
+                        User_Task = "AUCG",
+                        User_datastride = 1,
+                        User_NumReductionComponent = None,
+                        PerformZscoring = True, PerformReduction = False,
+                        StringentValidation = True,
+                        ReturnRawAltman = False,
+                        TestingPhase = True,
+                        User_NeighborLabelSmoothAngstrom = 0.0,
+                        ):
+        FetchIndexC = FetchIndex(DIR_Feature = self.DIR_FuelInput, 
+                                    DIR_Typi = self.DIR_Typi, n_row_maxhold = self.n_row_maxhold)
+        #print(Assigned_PdbidWeight)
+        #print(Assigned_PdbidBatch)
+
+        assert len(Assigned_PdbidBatch) == 1, "ABORTED. Supply a list (with only one member) of pdbidbatch"
+
+        n_feature_per_shell = 80
+        IPCA = self.GetIpca(User_Task)
+        if PerformZscoring:
+            IPCA_Mean = IPCA.mean_
+            IPCA_Std = (IPCA.var_)**0.5
+        else:
+            IPCA_Mean = None
+            IPCA_Std = None
+        
+        if PerformReduction:
+            assert (User_NumReductionComponent is not None), "ABORTED. Specify User_NumReductionComponent"
+            n_feature_per_shell = User_NumReductionComponent
+            IPCA_Mean = IPCA.mean_
+            IPCA_Std = (IPCA.var_)**0.5
+            IPCA_Components = IPCA.components_[:n_feature_per_shell,:]
+            IPCA_Components[np.abs(IPCA_Components[:n_feature_per_shell,:]) <= 1e-5] = 0.0
+
+        else:
+            IPCA_Components = None
+
+        
+        ds_temp = OOC_Pdbid_TorchNoOpSingleDataset(Assigned_PdbidBatch[0],
+                                classindex_int = ClassName_ClassIndex_Dict, 
+                                #Assigned_PdbidWeight  = Assigned_PdbidWeight,
+                                feature_mean = IPCA_Mean,
+                                feature_std = IPCA_Std,
+                                feature_component = IPCA_Components,
+                                feature_component_size = n_feature_per_shell,
+                                feature_resizeshape = (6,80), # TODO Here assume altman
+                                FetchIndexC = FetchIndexC,  
+                                ReturnRawAltman = ReturnRawAltman,
+                                data_stride = User_datastride,
+                                LabelTreeLogic = self.TaskNameLabelLogicDict[User_Task],
+                                User_NeighborLabelSmoothAngstrom = User_NeighborLabelSmoothAngstrom,
+                                DIR_Typi = self.DIR_Typi
+                    )
+
+
+
+        ds_temp = NucleicNet.Fuel.DS3.BasicMap(ds_temp[0], ds_temp[1], ds_temp[2])
+
+        return ds_temp
+
+
+
 
 # =============================
 # Template Task Set up
@@ -1252,37 +1394,3 @@ test_dataloader = torch.utils.data.DataLoader(ds_testing,
 #gc.collect()
 
 """
-
-
-# =================================================================================
-#    NucleicNet
-#    Copyright (C) 2019-2022  Jordy Homing Lam, JHML. All rights reserved.
-#    
-#    Acknowledgement. 
-#    JHML would like to thank Mingyi Xue and Joshua Chou for their patience and efforts 
-#    in the debugging process and Prof. Xin Gao and Prof. Xuhui Huang for their 
-#    continuous support.
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published
-#    by the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    Redistribution and use in source and binary forms, with or without
-#    modification, are permitted provided that the following conditions are
-#    met:
-#
-#    * Redistributions of source code must retain the above copyright notice, 
-#    this list of conditions and the following disclaimer.
-#    * Redistributions in binary form must reproduce the above copyright notice, 
-#    this list of conditions and the following disclaimer in the documentation and/or 
-#    other materials provided with the distribution.
-#    * Cite our work at Lam, J.H., Li, Y., Zhu, L. et al. A deep learning framework to predict binding preference of RNA constituents on protein surface. Nat Commun 10, 4941 (2019). https://doi.org/10.1038/s41467-019-12920-0
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# ==================================================================================
