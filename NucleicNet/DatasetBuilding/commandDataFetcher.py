@@ -828,6 +828,44 @@ class FetchTask():
             return df
 
 
+    def Return_DictClassToHaloIndex(self, pdbid, 
+        User_Task = ""):
+
+        # ======================================================
+        # Bound on Clan Size 
+        # ======================================================
+        # NOTE This prevents extremely abundant clan e.g. histone bound dna from dominating the data
+        #      We set a max datasize for each clan at max of the largest pdbentry at around 2000000
+        FetchIndexC = FetchIndex(DIR_Feature = self.DIR_FuelInput, 
+                                DIR_Typi = self.DIR_Typi, n_row_maxhold = self.n_row_maxhold)
+
+        classindex_str = sorted(self.TaskNameLabelLogicDict[User_Task].keys()) 
+        classindex_int = dict(zip(classindex_str, range(len(classindex_str))))
+        # =====================
+        # Load Typi (Fast)
+        # =====================
+        with np.load("%s/%s.typi.npz" %(self.DIR_Typi, pdbid)) as f:
+                typi = sparse.csr_matrix((f['data'], f['indices'], f['indptr']), shape= f['shape'])
+
+        # NOTE obtain Index where class is available
+        Class_To_Idx_Dict = FetchIndexC.Typi_TreeLogicClass(typi , 
+                                LabelTreeLogic = self.TaskNameLabelLogicDict[User_Task],
+                                ReturnSeperateInDict = True)
+        # ====================
+        # Get target (Fast)
+        # ====================
+        # NOTE both should be list of list
+        #idx_y = {}
+        idx_x = {} 
+        for c in sorted(Class_To_Idx_Dict.keys()):
+
+            if len(Class_To_Idx_Dict[c]) == 0: # NOTE This handles when a class is missing in the pdb entry
+                continue
+
+            idx_x[c] = Class_To_Idx_Dict[c] # NOTE THis is the halo index
+            #idx_y[c] = [classindex_int[c]] * len(Class_To_Idx_Dict[c])
+        return idx_x
+
 
 # ==========================
 # Fetch Feature

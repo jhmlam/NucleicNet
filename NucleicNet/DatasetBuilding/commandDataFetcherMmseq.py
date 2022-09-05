@@ -1,3 +1,37 @@
+# =================================================================================
+#    NucleicNet
+#    Copyright (C) 2019-2022  Jordy Homing Lam, JHML. All rights reserved.
+#    
+#    Acknowledgement. 
+#    JHML would like to thank Mingyi Xue and Joshua Chou for their patience and efforts 
+#    in the debugging process and Prof. Xin Gao and Prof. Xuhui Huang for their 
+#    continuous support.
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published
+#    by the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Redistribution and use in source and binary forms, with or without
+#    modification, are permitted provided that the following conditions are
+#    met:
+#
+#    * Redistributions of source code must retain the above copyright notice, 
+#    this list of conditions and the following disclaimer.
+#    * Redistributions in binary form must reproduce the above copyright notice, 
+#    this list of conditions and the following disclaimer in the documentation and/or 
+#    other materials provided with the distribution.
+#    * Cite our work at Lam, J.H., Li, Y., Zhu, L. et al. A deep learning framework to predict binding preference of RNA constituents on protein surface. Nat Commun 10, 4941 (2019). https://doi.org/10.1038/s41467-019-12920-0
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# ==================================================================================
+
+
 
 import subprocess
 #from biopandas.pdb import PandasPdb
@@ -797,6 +831,45 @@ class FetchTask():
             return df
 
 
+    def Return_DictClassToHaloIndex(self, pdbid, 
+        User_Task = ""):
+
+        # ======================================================
+        # Bound on Clan Size 
+        # ======================================================
+        # NOTE This prevents extremely abundant clan e.g. histone bound dna from dominating the data
+        #      We set a max datasize for each clan at max of the largest pdbentry at around 2000000
+        FetchIndexC = FetchIndex(DIR_Feature = self.DIR_FuelInput, 
+                                DIR_Typi = self.DIR_Typi, n_row_maxhold = self.n_row_maxhold)
+
+        classindex_str = sorted(self.TaskNameLabelLogicDict[User_Task].keys()) 
+        classindex_int = dict(zip(classindex_str, range(len(classindex_str))))
+        # =====================
+        # Load Typi (Fast)
+        # =====================
+        with np.load("%s/%s.typi.npz" %(self.DIR_Typi, pdbid)) as f:
+                typi = sparse.csr_matrix((f['data'], f['indices'], f['indptr']), shape= f['shape'])
+
+        # NOTE obtain Index where class is available
+        Class_To_Idx_Dict = FetchIndexC.Typi_TreeLogicClass(typi , 
+                                LabelTreeLogic = self.TaskNameLabelLogicDict[User_Task],
+                                ReturnSeperateInDict = True)
+        # ====================
+        # Get target (Fast)
+        # ====================
+        # NOTE both should be list of list
+        #idx_y = {}
+        idx_x = {} 
+        for c in sorted(Class_To_Idx_Dict.keys()):
+
+            if len(Class_To_Idx_Dict[c]) == 0: # NOTE This handles when a class is missing in the pdb entry
+                continue
+
+            idx_x[c] = Class_To_Idx_Dict[c] # NOTE THis is the halo index
+            #idx_y[c] = [classindex_int[c]] * len(Class_To_Idx_Dict[c])
+        return idx_x
+
+
 
 # ==========================
 # Fetch Feature
@@ -1394,3 +1467,35 @@ test_dataloader = torch.utils.data.DataLoader(ds_testing,
 #gc.collect()
 
 """
+# =================================================================================
+#    NucleicNet
+#    Copyright (C) 2019-2022  Jordy Homing Lam, JHML. All rights reserved.
+#    
+#    Acknowledgement. 
+#    JHML would like to thank Mingyi Xue and Joshua Chou for their patience and efforts 
+#    in the debugging process and Prof. Xin Gao and Prof. Xuhui Huang for their 
+#    continuous support.
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published
+#    by the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Redistribution and use in source and binary forms, with or without
+#    modification, are permitted provided that the following conditions are
+#    met:
+#
+#    * Redistributions of source code must retain the above copyright notice, 
+#    this list of conditions and the following disclaimer.
+#    * Redistributions in binary form must reproduce the above copyright notice, 
+#    this list of conditions and the following disclaimer in the documentation and/or 
+#    other materials provided with the distribution.
+#    * Cite our work at Lam, J.H., Li, Y., Zhu, L. et al. A deep learning framework to predict binding preference of RNA constituents on protein surface. Nat Commun 10, 4941 (2019). https://doi.org/10.1038/s41467-019-12920-0
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# ==================================================================================
