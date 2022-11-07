@@ -53,7 +53,7 @@ Previously, we use a very small batch size (128) to train our Resnet. But since 
 * Rather than visualising only a fixed percentile of multi-label voxels. We implemented a thresholding scheme based on bit fraction (fractional height on logo diagrams) at each location. This allows a more systematic visualisation of multi-labels.
 
 ## Upcoming v 1.2
-- [ ] Mmseq2. [Blast Clust is retired from PDB since April 2022](https://groups.google.com/a/rcsb.org/g/api/c/ALLI4pouK_w). While we kept a version from January 2022, we will likely transit to the MMseq2 clusters.
+- [x] Mmseq2. [Blast Clust is retired from PDB since April 2022](https://groups.google.com/a/rcsb.org/g/api/c/ALLI4pouK_w). While we kept a version from January 2022, we will likely transit to the MMseq2 clusters.
 - [ ] NPIDB. NPIDB is no longer available. We will remove this dependency completely in the future.
 - [ ] Cif and Ensemble. A better handle for structures with size exceeding pdb format limit. [PDB finally distribute assembly cif in May 2022!](https://www.rcsb.org/news/feature/62559153c8eabd0c4864f208)
 - [ ] Bayesian uncertainty. 
